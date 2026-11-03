@@ -1,43 +1,42 @@
 name: Build CHISAKE APK
 
 on:
-workflow_dispatch:
+  workflow_dispatch:
 
 jobs:
-build:
-runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-steps:
-  - name: Checkout repository
-    uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
 
-  - name: Set up Java
-    uses: actions/setup-java@v4
-    with:
-      distribution: temurin
-      java-version: '17'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
 
-  - name: Set up Gradle
-    uses: gradle/actions/setup-gradle@v4
-    with:
-      gradle-version: '8.9'
+      - name: Extract project
+        run: |
+          mkdir project
+          unzip -o CHISAKE-Android-Starter.zip -d project
+          PROJECT_DIR=$(find project -name settings.gradle.kts -printf '%h\n' | head -n 1)
+          if [ -z "$PROJECT_DIR" ]; then
+            echo "Project files not found"
+            exit 1
+          fi
+          cp -R "$PROJECT_DIR"/. .
 
-  - name: Extract Android project
-    run: |
-      mkdir project
-      unzip -o CHISAKE-Android-Starter.zip -d project
-      PROJECT_DIR=$(find project -name settings.gradle.kts -printf '%h\n' | head -n 1)
-      if [ -z "$PROJECT_DIR" ]; then
-        echo "Android project files not found"
-        exit 1
-      fi
-      cp -R "$PROJECT_DIR"/. .
+      - name: Build APK
+        run: gradle assembleDebug
 
-  - name: Build APK
-    run: gradle assembleDebug
-
-  - name: Upload APK
-    uses: actions/upload-artifact@v4
-    with:
-      name: CHISAKE-APK
-      path: app/build/outputs/apk/debug/app-debug.apk
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: CHISAKE-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
