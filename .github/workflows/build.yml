@@ -1,11 +1,11 @@
 name: Build CHISAKE APK
 
-on:
-  workflow_dispatch:
+"on": [workflow_dispatch]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,12 +25,7 @@ jobs:
         run: |
           mkdir project
           unzip -o CHISAKE-Android-Starter.zip -d project
-          PROJECT_DIR=$(find project -name settings.gradle.kts -printf '%h\n' | head -n 1)
-          if [ -z "$PROJECT_DIR" ]; then
-            echo "Project files not found"
-            exit 1
-          fi
-          cp -R "$PROJECT_DIR"/. .
+          cp -R project/. .
 
       - name: Build APK
         run: gradle assembleDebug
