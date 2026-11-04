@@ -11,9 +11,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
+      - name: Check out repository
         uses: actions/checkout@v4
 
       - name: Set up Java 17
@@ -22,27 +21,33 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Gradle
+      - name: Set up Gradle 8.9
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
-      - name: Extract Android project
+      - name: Extract CHISAKE project
+        shell: bash
         run: |
-          unzip -o CHISAKE-Android-Starter-FIXED.zip -d project
-          PROJECT_DIR=$(find project -name settings.gradle.kts -printf '%h\n' | head -n 1)
-          if [ -z "$PROJECT_DIR" ]; then
-            echo "Android project not found"
-            exit 1
-          fi
-          cp -R "$PROJECT_DIR"/. .
+          set -euo pipefail
+          ARCHIVE="CHISAKE-Firebase-Registration-Login.zip"
+          test -f "$ARCHIVE" || { echo "Missing $ARCHIVE in repository root"; exit 1; }
+          mkdir -p extracted
+          unzip -q -o "$ARCHIVE" -d extracted
+          PROJECT_DIR="$(find extracted -type f -name settings.gradle.kts -printf '%h\n' | head -n 1)"
+          test -n "$PROJECT_DIR" || { echo "settings.gradle.kts not found inside archive"; exit 1; }
+          test -f "$PROJECT_DIR/app/google-services.json" || { echo "Firebase app/google-services.json missing"; exit 1; }
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
 
-      - name: Build CHISAKE APK
-        run: gradle assembleDebug
+      - name: Build debug APK
+        shell: bash
+        run: |
+          cd "$PROJECT_DIR"
+          gradle --no-daemon assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: CHISAKE-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
