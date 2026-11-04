@@ -30,7 +30,7 @@ jobs:
       - name: Extract project
         run: |
           set -e
-          ARCHIVE="CHISAKE Android project.zip"
+          ARCHIVE="CHISAKE-Android-Project-Download.zip"
           test -f "$ARCHIVE" || { echo "ZIP file not found"; exit 1; }
           mkdir extracted
           unzip -o "$ARCHIVE" -d extracted
