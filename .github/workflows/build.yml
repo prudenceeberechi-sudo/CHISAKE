@@ -30,7 +30,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ARCHIVE="CHISAKE-Firebase-Registration-Login.zip"
+          ARCHIVE="CHISAKE Android project.zip"
           test -f "$ARCHIVE" || { echo "Missing $ARCHIVE in repository root"; exit 1; }
           mkdir -p extracted
           unzip -q -o "$ARCHIVE" -d extracted
